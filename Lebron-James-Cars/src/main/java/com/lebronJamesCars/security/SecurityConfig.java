@@ -54,6 +54,17 @@ public class SecurityConfig {
                 .requestMatchers("/chat", "/chat/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(401);
+                    response.getWriter().write(
+                        "{\"timestamp\":\"" + java.time.LocalDateTime.now() +
+                        "\",\"status\":401,\"error\":\"Unauthorized\"" +
+                        ",\"message\":\"Authentication required\"}"
+                    );
+                })
+            )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
