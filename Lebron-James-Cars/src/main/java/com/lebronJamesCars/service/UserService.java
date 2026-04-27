@@ -1,6 +1,7 @@
 package com.lebronJamesCars.service;
 
 import com.lebronJamesCars.entity.User;
+import com.lebronJamesCars.exception.ResourceNotFoundException;
 import com.lebronJamesCars.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +25,6 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public User createUser(User user) {
-        // Add additional business logic (e.g., hashing password, validation)
-        return userRepository.save(user);
-    }
-    
-    public Optional<User> loginUser(String email, String password) {
-        return userRepository.findByEmail(email)
-            .filter(user -> user.getPassword().equals(password)); // NO HASHING - only for simplicity
-    }
-
-
     public Optional<User> updateUser(Long id, User newUser) {
         return userRepository.findById(id).map(user -> {
             user.setName(newUser.getName());
@@ -44,7 +34,7 @@ public class UserService {
             user.setCity(newUser.getCity());
             user.setProvince(newUser.getProvince());
             user.setPhoneNum(newUser.getPhoneNum());
-            user.setRole(newUser.getRole());
+            // role intentionally not updated here — role changes require a dedicated admin endpoint
             return userRepository.save(user);
         });
     }

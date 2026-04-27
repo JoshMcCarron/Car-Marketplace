@@ -1,7 +1,6 @@
 package com.lebronJamesCars.entity;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import jakarta.persistence.*;
 
@@ -18,10 +17,8 @@ public class Vehicle {
     @Column(name = "shape")
     private String shape;
     @Column(name = "vehicleHistory")
-    private String vehicleHistory; //like accidents
-    @Column(name = "reviews")
-    private String reviews;
-    
+    private String vehicleHistory;
+
     @Column(name = "modelYear", nullable = false)
     private int modelYear;
     @Column(name = "stock", nullable = false)
@@ -51,14 +48,13 @@ public class Vehicle {
 
     }
     
-    public Vehicle(String brand, String shape, String vehicleHistory, String reviews, 
-    		int modelYear, int stock, int loanDuration, double emissionScore, BigDecimal interestRate, BigDecimal price, 
-    		 double co2Emission, double fuelUsage, boolean onSale, double mileage) {
-    	
+    public Vehicle(String brand, String shape, String vehicleHistory,
+    		int modelYear, int stock, int loanDuration, double emissionScore, BigDecimal interestRate, BigDecimal price,
+    		double co2Emission, double fuelUsage, boolean onSale, double mileage) {
+
     	this.brand = brand;
     	this.shape = shape;
     	this.vehicleHistory = vehicleHistory;
-    	this.reviews = reviews;
     	this.modelYear = modelYear;
     	this.stock = stock;
     	this.loanDuration = loanDuration;
@@ -160,15 +156,6 @@ public class Vehicle {
     public void setEmissionScore(double emissionScore) {
         this.emissionScore = emissionScore;
     }
-
-    public String getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(String reviews) {
-        this.reviews = reviews;
-    }
-
 
     public String getVehicleHistory() {
         return vehicleHistory;

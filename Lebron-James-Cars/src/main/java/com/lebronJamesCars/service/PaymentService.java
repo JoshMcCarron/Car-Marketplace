@@ -1,20 +1,14 @@
 package com.lebronJamesCars.service;
 
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 
+@Service
 public class PaymentService {
-    private static int paymentCounter = 0;
 
-    public static boolean processPayment(BigDecimal bigDecimal) {
-        paymentCounter++;
-        
-        if (paymentCounter <= 2) {
-            // Approve first two payments
-            return true;
-        } else {
-            // Deny every third payment and reset counter
-            paymentCounter = 0;
-            return false;
-        }
+    public boolean processPayment(BigDecimal amount) {
+        // TODO: integrate Stripe
+        return true;
     }
 }
