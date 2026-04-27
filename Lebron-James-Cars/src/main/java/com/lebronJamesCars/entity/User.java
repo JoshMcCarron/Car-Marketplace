@@ -2,43 +2,50 @@ package com.lebronJamesCars.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
-    
+
     @Column(name = "name", nullable = false)
     private String name;
-    
+
     @Column(name = "email", nullable = false)
     private String email;
-    
+
+    @JsonIgnore
     @Column(name = "password", nullable = false)
     private String password;
-   
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true )
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Cart cart;
-    
+
     @Column(name = "address", nullable = false)
     private String address;
-    
+
     @Column(name = "postalCode", nullable = false)
     private String postalCode;
-    
+
     @Column(name = "city", nullable = false)
     private String city;
-    
+
     @Column(name = "province", nullable = false)
     private String province;
-    
+
     @Column(name = "phoneNum", nullable = false)
     private String phoneNum;
-    
+
     @Column(name = "role", nullable = false)
     private String role;
 
@@ -62,18 +69,26 @@ public class User {
         this.role = role;
     }
 
-    //methods to implement
-    public void writeReview(){
+    // UserDetails — Spring Security identity contract
 
+    @Override
+    @JsonIgnore
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
-    public void checkout(){
-
+    @Override
+    public String getUsername() {
+        return email;
     }
 
+    @Override
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
 
-
-
+    // Getters and setters
 
     public Long getUserId() {
         return userId;
@@ -97,10 +112,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public void setPassword(String password) {
@@ -131,20 +142,20 @@ public class User {
         this.postalCode = postalCode;
     }
 
-    public String getProvince() {
-        return province;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
     public String getCity() {
         return city;
     }
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
     }
 
     public String getPhoneNum() {
