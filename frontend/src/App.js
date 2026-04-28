@@ -23,19 +23,24 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogin = (loggedInUser) => {
-    setUser(loggedInUser);
-    localStorage.setItem("user", JSON.stringify(loggedInUser));
+  // Receives the full AuthResponse from the backend {token, userId, email, name, role}.
+  // Splits it so the token lives separately from the user profile in localStorage.
+  const handleLogin = (authResponse) => {
+    const { token, userId, email, name, role } = authResponse;
+    const user = { userId, email, name, role };
+    setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("token", token);
     navigate("/catalog");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     navigate("/");
   };
 
-  // Show Navbar everywhere except LandingPage
   const showNavbar = location.pathname !== "/";
 
   return (

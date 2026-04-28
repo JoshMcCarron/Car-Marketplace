@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../services/api";
 
 const LoginForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -12,25 +13,14 @@ const LoginForm = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Clear previous messages
+    setMessage("");
 
     try {
-      const response = await fetch("http://18.214.94.81:8080/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const user = await response.json();
-        onLogin(user);
-        navigate("/catalog");
-      } else {
-        setMessage("Invalid email or password.");
-      }
+      const response = await api.post("/auth/login", formData);
+      onLogin(response.data);
+      navigate("/catalog");
     } catch (error) {
-      console.error("Login error:", error);
-      setMessage("Failed to connect to the server.");
+      setMessage("Invalid email or password.");
     }
   };
 

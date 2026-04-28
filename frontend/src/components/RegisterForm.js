@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 const RegisterForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,6 @@ const RegisterForm = ({ onLogin }) => {
     city: "",
     province: "",
     phoneNum: "",
-    role: "USER",
   });
 
   const [message, setMessage] = useState("");
@@ -22,73 +22,37 @@ const RegisterForm = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+
     try {
-      const response = await fetch("http://18.214.94.81:8080/users/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const loginResponse = await fetch("http://18.214.94.81:8080/users/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
-
-        if (loginResponse.ok) {
-          const loggedInUser = await loginResponse.json();
-          localStorage.setItem("user", JSON.stringify(loggedInUser));
-          onLogin(loggedInUser);
-        } else {
-          setMessage("Registration successful, but auto login failed. Please login manually.");
-        }
-
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          address: "",
-          postalCode: "",
-          city: "",
-          province: "",
-          phoneNum: "",
-          role: "USER",
-        });
-      } else {
-        setMessage("Error registering user.");
-      }
+      // /auth/register returns a full AuthResponse (token + user info) — no second login call needed.
+      const response = await api.post("/auth/register", formData);
+      onLogin(response.data);
     } catch (error) {
-      console.error("Error:", error);
-      setMessage("Failed to connect to the server.");
+      setMessage(
+        error.response?.status === 409
+          ? "An account with that email already exists."
+          : "Error registering. Please try again."
+      );
     }
   };
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.welcomeTitle}>Welcome to Lebron James’ Cars!</h2>
+      <h2 style={styles.welcomeTitle}>Create your account</h2>
       <h3 style={styles.title}>Register</h3>
       <form style={styles.form} onSubmit={handleSubmit}>
         {Object.keys(formData).map((key) => (
-          key !== "role" && (
-            <input
-              key={key}
-              type={key === "email" ? "email" : key === "password" ? "password" : "text"}
-              name={key}
-              placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
-              value={formData[key]}
-              onChange={handleChange}
-              required={key === "name" || key === "email" || key === "password"}
-              style={styles.input}
-            />
-          )
+          <input
+            key={key}
+            type={key === "email" ? "email" : key === "password" ? "password" : "text"}
+            name={key}
+            placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
+            value={formData[key]}
+            onChange={handleChange}
+            required={key === "name" || key === "email" || key === "password"}
+            style={styles.input}
+          />
         ))}
         <button type="submit" style={styles.registerButton}>Register</button>
       </form>

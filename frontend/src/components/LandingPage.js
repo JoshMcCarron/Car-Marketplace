@@ -1,24 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllUsers } from "../services/userService";
-import lebronImage from '../img/lebron.jpg';
 
 function LandingPage() {
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     if (user) {
-      navigate("/catalog"); // Redirect logged-in users to the catalog
-    } else {
-      getAllUsers().then(setUsers); // Fetch registered users only if not logged in
+      navigate("/catalog");
     }
   }, [user, navigate]);
 
   return (
     <div style={styles.homeContainer}>
-      <h1 style={styles.heading}>Welcome to Lebron James' Cars</h1>
+      <h1 style={styles.heading}>Welcome to Car Marketplace</h1>
+      <p style={styles.tagline}>Browse and purchase quality vehicles</p>
 
       {!user && (
         <div style={styles.buttonGroup}>
@@ -30,12 +26,6 @@ function LandingPage() {
           </Link>
         </div>
       )}
-
-      <img
-        src={lebronImage}
-        alt="Lebron"
-        style={styles.lebronImage}
-      />
     </div>
   );
 }
@@ -43,7 +33,7 @@ function LandingPage() {
 const styles = {
   homeContainer: {
     textAlign: "center",
-    padding: "40px 20px",
+    padding: "80px 20px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -51,13 +41,17 @@ const styles = {
   heading: {
     fontSize: "60px",
     fontWeight: "600",
+    marginBottom: "20px",
+  },
+  tagline: {
+    fontSize: "22px",
+    color: "#5A5A5A",
     marginBottom: "50px",
   },
   buttonGroup: {
     display: "flex",
     justifyContent: "center",
     gap: "200px",
-    marginBottom: "0px", 
   },
   loginButton: {
     padding: "16px 32px",
@@ -69,9 +63,6 @@ const styles = {
     borderRadius: "10px",
     cursor: "pointer",
     transition: "transform 0.2s",
-    ":hover": {
-      transform: "scale(1.05)",
-    },
   },
   registerButton: {
     padding: "16px 32px",
@@ -83,14 +74,6 @@ const styles = {
     borderRadius: "10px",
     cursor: "pointer",
     transition: "transform 0.2s",
-    ":hover": {
-      transform: "scale(1.05)",
-    },
-  },
-  lebronImage: {
-    width: "1000px",
-    maxWidth: "90%",
-    marginTop: "0px", 
   },
 };
 

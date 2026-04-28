@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 const Cart = ({ user }) => {
   const [cart, setCart] = useState(null);
@@ -8,30 +9,19 @@ const Cart = ({ user }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
-      console.log("No user found, skipping cart fetch.");
-      return;
-    }
+    if (!user) return;
 
-    console.log(`Fetching cart for user ID: ${user.userId}`);
-
-    fetch(`http://18.214.94.81:8080/users/${user.userId}/cart`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Cart data received:", data);
-        setCart(data);
-      })
+    api.get(`/users/${user.userId}/cart`)
+      .then((response) => setCart(response.data))
       .catch((error) => console.error("Error fetching cart:", error));
   }, [user]);
 
   const handleRemove = (vehicleId) => {
-
     setIsProcessing(true);
 
-    fetch(`http://18.214.94.81:8080/users/${userId}/cart/${vehicleId}`, { method: "DELETE" })
-      .then((res) => res.json())
-      .then((updatedCart) => {
-        console.log("Updated cart after removal:", updatedCart);
+    api.delete(`/users/${userId}/cart/${vehicleId}`)
+      .then((response) => {
+        const updatedCart = response.data;
         if (updatedCart?.vehicles) {
           setCart(updatedCart);
         } else {
@@ -43,13 +33,11 @@ const Cart = ({ user }) => {
   };
 
   const handleCheckout = () => {
-
     setIsProcessing(true);
 
-    fetch(`http://18.214.94.81:8080/users/${userId}/cart/checkout`, { method: "POST" })
-      .then((res) => res.text())
-      .then((message) => {
-        alert(message);
+    api.post(`/users/${userId}/cart/checkout`)
+      .then((response) => {
+        alert(response.data);
         const totalPrice = cart?.price || 0;
         setCart({ vehicles: [], price: 0, noItems: 0 });
         navigate("/payment", { state: { totalPrice } });
@@ -113,7 +101,7 @@ const Cart = ({ user }) => {
       maxWidth: "800px",
       margin: "20px auto"
     }}>
-      <h2 style={{ 
+      <h2 style={{
         color: "#335C67",
         marginBottom: "25px",
         paddingBottom: "10px",
@@ -121,7 +109,7 @@ const Cart = ({ user }) => {
       }}>
         Your Cart ({cart.noItems} {cart.noItems === 1 ? 'item' : 'items'})
       </h2>
-      
+
       <div style={{ marginBottom: "30px" }}>
         {cart.vehicles.map((vehicle) => (
           <div key={vehicle.vehicleID} style={{
@@ -130,12 +118,9 @@ const Cart = ({ user }) => {
             alignItems: "center",
             padding: "15px",
             borderBottom: "1px solid #F0F0F0",
-            ":last-child": {
-              borderBottom: "none"
-            }
           }}>
             <div>
-              <h3 style={{ 
+              <h3 style={{
                 color: "#335C67",
                 margin: "0 0 5px 0",
                 fontSize: "18px"
@@ -148,7 +133,7 @@ const Cart = ({ user }) => {
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ 
+              <div style={{
                 fontSize: "18px",
                 fontWeight: "bold",
                 color: "#9E2A2B",
@@ -167,9 +152,6 @@ const Cart = ({ user }) => {
                   borderRadius: "5px",
                   cursor: "pointer",
                   fontSize: "14px",
-                  ":hover": {
-                    backgroundColor: "#FFEBEE"
-                  }
                 }}
               >
                 Remove
@@ -179,7 +161,7 @@ const Cart = ({ user }) => {
         ))}
       </div>
 
-      <div style={{ 
+      <div style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -188,14 +170,14 @@ const Cart = ({ user }) => {
         borderRadius: "5px",
         marginBottom: "20px"
       }}>
-        <h3 style={{ 
+        <h3 style={{
           color: "#335C67",
           margin: "0",
           fontSize: "20px"
         }}>
           Total Price
         </h3>
-        <span style={{ 
+        <span style={{
           fontSize: "24px",
           fontWeight: "bold",
           color: "#9E2A2B"
@@ -218,9 +200,6 @@ const Cart = ({ user }) => {
           fontSize: "18px",
           fontWeight: "500",
           transition: "background-color 0.2s",
-          ":hover": {
-            backgroundColor: "rgba(224, 159, 62, 1)"
-          }
         }}
       >
         {isProcessing ? "Processing..." : "Proceed to Checkout"}
