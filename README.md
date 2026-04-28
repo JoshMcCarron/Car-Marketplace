@@ -11,7 +11,7 @@ A full-stack e-commerce platform for browsing and purchasing vehicles. The backe
 | Language | Java 17 |
 | Framework | Spring Boot 3.4 |
 | Security | Spring Security 6, JWT (jjwt 0.12.6) |
-| Persistence | Spring Data JPA / Hibernate, SQLite |
+| Persistence | Spring Data JPA / Hibernate, PostgreSQL |
 | Validation | Jakarta Bean Validation |
 | Frontend | React |
 | Deployment | AWS EC2 |
@@ -37,7 +37,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-The API starts on `http://localhost:8080`. A `car_marketplace.db` SQLite file is created automatically on first run.
+The API starts on `http://localhost:8080`. See **Database Setup** below before running for the first time.
 
 ### Frontend
 
@@ -118,15 +118,48 @@ Request
 - **Stateless JWT** — no server-side sessions; identity is verified on every request from the token
 - **BCrypt password hashing** — passwords are never stored or returned in plaintext; `@JsonIgnore` on `User.password`
 - **Role-based + ownership access control** — `ROLE_ADMIN` or account owner required for user/cart mutations; a `UserSecurity` component exposes `isOwner()` for `@PreAuthorize` expressions
-- **Database-level filtering** — vehicle search uses JPA `Specification` predicates pushed to SQLite rather than loading all rows into memory
+- **Database-level filtering** — vehicle search uses JPA `Specification` predicates pushed to PostgreSQL rather than loading all rows into memory
 - **Global exception handler** — `@RestControllerAdvice` maps typed exceptions to consistent JSON error responses (`timestamp`, `status`, `error`, `message`)
+
+---
+
+## Database Setup
+
+Requires a running PostgreSQL instance with a database named `car_marketplace`.
+
+```sql
+CREATE DATABASE car_marketplace;
+```
+
+The app reads connection details from environment variables. `DB_PASSWORD` has no default and **must be set** before starting the backend — the other variables fall back to the defaults shown.
+
+| Variable | Default | Description |
+|---|---|---|
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `car_marketplace` | Database name |
+| `DB_USER` | `postgres` | Database username |
+| `DB_PASSWORD` | *(none — required)* | Database password |
+
+**Set `DB_PASSWORD` before running the app:**
+
+Windows PowerShell:
+```powershell
+$env:DB_PASSWORD="yourpassword"
+```
+
+Mac/Linux:
+```bash
+export DB_PASSWORD=yourpassword
+```
+
+> Tests use an H2 in-memory database and do not require PostgreSQL to be running.
 
 ---
 
 ## Planned Improvements
 
-- **PostgreSQL** — migrate from SQLite to PostgreSQL for production-grade concurrency and indexing
 - **Docker** — containerize backend and frontend with a `docker-compose.yml` for one-command local setup
-- **Test coverage** — unit tests for services, integration tests for controllers using `@SpringBootTest` and `MockMvc`
+- **Flyway** — replace `ddl-auto=update` with versioned schema migrations
 - **CI/CD** — GitHub Actions pipeline for automated build, test, and deployment on push to `main`
 - **Stripe integration** — replace the stub `PaymentService` with real Stripe payment processing
