@@ -93,14 +93,17 @@ public class CartService {
             throw new BadRequestException("Cart is empty");
         }
 
+        for (Vehicle vehicle : cart.getVehicles()) {
+            if (vehicle.getStock() <= 0) {
+                throw new BadRequestException("Vehicle " + vehicle.getVehicleID() + " is out of stock");
+            }
+        }
+
         if (!paymentService.processPayment(cart.getPrice())) {
             throw new BadRequestException("Credit card authorization failed");
         }
 
         for (Vehicle vehicle : cart.getVehicles()) {
-            if (vehicle.getStock() <= 0) {
-                throw new BadRequestException("Vehicle " + vehicle.getVehicleID() + " is out of stock");
-            }
             vehicle.setStock(vehicle.getStock() - 1);
             vehicleRepository.save(vehicle);
         }

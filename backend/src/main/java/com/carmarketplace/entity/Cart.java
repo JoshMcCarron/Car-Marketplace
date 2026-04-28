@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,6 +32,9 @@ public class Cart {
     private int noItems;
     
     public Cart() {
+        // vehicles must be initialized here — CartService calls getVehicles().contains/add/remove
+        // on unsaved carts, which NPEs if the list is null (JPA only initializes it after a fetch).
+        this.vehicles = new ArrayList<>();
         this.price = BigDecimal.ZERO;
         this.noItems = 0;
     }
