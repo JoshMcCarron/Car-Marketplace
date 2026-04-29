@@ -84,6 +84,15 @@ Authorization: Bearer <token>
 | DELETE | `/users/{userId}/cart/{vehicleId}` | Owner / Admin | Remove vehicle |
 | POST | `/users/{userId}/cart/checkout` | Owner / Admin | Checkout |
 
+### Orders (`/users/{userId}/orders`)
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/users/{userId}/orders` | Owner / Admin | List all orders for a user |
+| GET | `/users/{userId}/orders/{orderId}` | Owner / Admin | Get a single order by ID |
+
+Orders are created automatically when a cart checkout succeeds. Each order captures a snapshot of the purchased vehicles, the total price, the timestamp (`orderDate`), and a `status` field (currently always `"COMPLETED"`).
+
 ### Reviews (`/vehicles/{vehicleId}/reviews`)
 
 | Method | Endpoint | Auth | Description |

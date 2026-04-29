@@ -1,6 +1,7 @@
 package com.carmarketplace.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carmarketplace.entity.Cart;
+import com.carmarketplace.entity.Order;
 import com.carmarketplace.entity.Vehicle;
 import com.carmarketplace.exception.BadRequestException;
 import com.carmarketplace.exception.ResourceNotFoundException;
 import com.carmarketplace.repository.CartRepository;
+import com.carmarketplace.repository.OrderRepository;
 import com.carmarketplace.repository.VehicleRepository;
 
 @Service
@@ -20,12 +23,14 @@ public class CartService {
     private final CartRepository cartRepository;
     private final VehicleRepository vehicleRepository;
     private final PaymentService paymentService;
+    private final OrderRepository orderRepository;
 
     public CartService(CartRepository cartRepository, VehicleRepository vehicleRepository,
-                       PaymentService paymentService) {
+                       PaymentService paymentService, OrderRepository orderRepository) {
         this.cartRepository = cartRepository;
         this.vehicleRepository = vehicleRepository;
         this.paymentService = paymentService;
+        this.orderRepository = orderRepository;
     }
 
     public List<Cart> getAllCarts() {
@@ -101,10 +106,18 @@ public class CartService {
             throw new BadRequestException("Credit card authorization failed");
         }
 
-        for (Vehicle vehicle : cart.getVehicles()) {
+        List<Vehicle> purchased = new ArrayList<>(cart.getVehicles());
+
+        for (Vehicle vehicle : purchased) {
             vehicle.setStock(vehicle.getStock() - 1);
             vehicleRepository.save(vehicle);
         }
+
+        Order order = new Order();
+        order.setUser(cart.getUser());
+        order.setVehicles(purchased);
+        order.setTotalPrice(cart.getPrice());
+        orderRepository.save(order);
 
         cart.getVehicles().clear();
         updateCartTotals(cart);

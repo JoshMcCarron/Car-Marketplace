@@ -2,11 +2,13 @@ package com.carmarketplace.service;
 
 import com.carmarketplace.TestDataFactory;
 import com.carmarketplace.entity.Cart;
+import com.carmarketplace.entity.Order;
 import com.carmarketplace.entity.User;
 import com.carmarketplace.entity.Vehicle;
 import com.carmarketplace.exception.BadRequestException;
 import com.carmarketplace.exception.ResourceNotFoundException;
 import com.carmarketplace.repository.CartRepository;
+import com.carmarketplace.repository.OrderRepository;
 import com.carmarketplace.repository.VehicleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +32,7 @@ class CartServiceTest {
     @Mock private CartRepository cartRepository;
     @Mock private VehicleRepository vehicleRepository;
     @Mock private PaymentService paymentService;
+    @Mock private OrderRepository orderRepository;
 
     @InjectMocks private CartService cartService;
 
@@ -94,19 +97,28 @@ class CartServiceTest {
     // --- checkout ---
 
     @Test
-    @DisplayName("checkout: decrements stock, clears cart, and saves both on success")
+    @DisplayName("checkout: decrements stock, saves order, and clears cart on success")
     void checkout_decrementsStockAndClearsCart_onSuccess() {
         cart.getVehicles().add(vehicle);
+        cart.setPrice(vehicle.getPrice()); // mirror what updateCartTotals() would set after addVehicleToCart
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
         when(paymentService.processPayment(any())).thenReturn(true);
         when(vehicleRepository.save(any(Vehicle.class))).thenReturn(vehicle);
         ArgumentCaptor<Cart> cartCaptor = ArgumentCaptor.forClass(Cart.class);
         when(cartRepository.save(cartCaptor.capture())).thenReturn(cart);
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
 
         cartService.checkout(1L);
 
         assertThat(vehicle.getStock()).isEqualTo(4); // decremented from 5
         assertThat(cartCaptor.getValue().getVehicles()).isEmpty();
+
+        verify(orderRepository).save(orderCaptor.capture());
+        Order savedOrder = orderCaptor.getValue();
+        assertThat(savedOrder.getVehicles()).containsExactly(vehicle);
+        assertThat(savedOrder.getTotalPrice()).isEqualByComparingTo(vehicle.getPrice());
+        assertThat(savedOrder.getStatus()).isEqualTo("COMPLETED");
+        assertThat(savedOrder.getUser()).isEqualTo(user);
     }
 
     @Test
@@ -121,7 +133,7 @@ class CartServiceTest {
     }
 
     @Test
-    @DisplayName("checkout: throws BadRequestException when payment is declined")
+    @DisplayName("checkout: throws BadRequestException when payment is declined, order is not saved")
     void checkout_throwsBadRequest_whenPaymentFails() {
         cart.getVehicles().add(vehicle);
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
@@ -130,10 +142,11 @@ class CartServiceTest {
         assertThatThrownBy(() -> cartService.checkout(1L))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Credit card");
+        verify(orderRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("checkout: throws BadRequestException when a vehicle is out of stock WITHOUT calling payment")
+    @DisplayName("checkout: throws BadRequestException when a vehicle is out of stock WITHOUT calling payment or saving an order")
     void checkout_throwsBadRequest_whenVehicleOutOfStock() {
         Vehicle outOfStock = TestDataFactory.buildVehicle("Honda", 0);
         outOfStock.setVehicleID(11L);
@@ -145,7 +158,7 @@ class CartServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("out of stock");
 
-        // Stock validation must happen before payment — a declined charge must never precede a failed stock check.
         verify(paymentService, never()).processPayment(any());
+        verify(orderRepository, never()).save(any());
     }
 }
