@@ -64,10 +64,11 @@ public class CartService {
 
     public Cart addVehicleToCart(Long userId, Long vehicleId) {
         Cart cart = getCartByUserId(userId);
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + vehicleId));
-
-        if (!cart.getVehicles().contains(vehicle)) {
+        boolean alreadyInCart = cart.getVehicles().stream()
+                .anyMatch(v -> v.getVehicleID().equals(vehicleId));
+        if (!alreadyInCart) {
+            Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + vehicleId));
             cart.getVehicles().add(vehicle);
             updateCartTotals(cart);
         }
@@ -76,11 +77,8 @@ public class CartService {
 
     public Cart removeFromCart(Long userId, Long vehicleId) {
         Cart cart = getCartByUserId(userId);
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + vehicleId));
-
-        if (cart.getVehicles().contains(vehicle)) {
-            cart.getVehicles().remove(vehicle);
+        boolean removed = cart.getVehicles().removeIf(v -> v.getVehicleID().equals(vehicleId));
+        if (removed) {
             updateCartTotals(cart);
         }
         return cartRepository.save(cart);

@@ -4,7 +4,7 @@ import api from "../services/api";
 
 const Cart = ({ user }) => {
   const [cart, setCart] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const userId = user?.userId;
   const navigate = useNavigate();
 
@@ -17,7 +17,7 @@ const Cart = ({ user }) => {
   }, [user]);
 
   const handleRemove = (vehicleId) => {
-    setIsProcessing(true);
+    setIsRemoving(true);
 
     api.delete(`/users/${userId}/cart/${vehicleId}`)
       .then((response) => {
@@ -29,21 +29,11 @@ const Cart = ({ user }) => {
         }
       })
       .catch((err) => console.error("Error removing item:", err))
-      .finally(() => setIsProcessing(false));
+      .finally(() => setIsRemoving(false));
   };
 
   const handleCheckout = () => {
-    setIsProcessing(true);
-
-    api.post(`/users/${userId}/cart/checkout`)
-      .then((response) => {
-        alert(response.data);
-        const totalPrice = cart?.price || 0;
-        setCart({ vehicles: [], price: 0, noItems: 0 });
-        navigate("/payment", { state: { totalPrice } });
-      })
-      .catch((err) => console.error("Error checking out:", err))
-      .finally(() => setIsProcessing(false));
+    navigate("/payment", { state: { totalPrice: cart?.price || 0, userId } });
   };
 
   if (!user) {
@@ -143,7 +133,7 @@ const Cart = ({ user }) => {
               </div>
               <button
                 onClick={() => handleRemove(vehicle.vehicleID)}
-                disabled={isProcessing}
+                disabled={isRemoving}
                 style={{
                   padding: "8px 15px",
                   backgroundColor: "#F5F5F5",
@@ -188,7 +178,6 @@ const Cart = ({ user }) => {
 
       <button
         onClick={handleCheckout}
-        disabled={isProcessing}
         style={{
           width: "100%",
           padding: "15px",
@@ -202,7 +191,7 @@ const Cart = ({ user }) => {
           transition: "background-color 0.2s",
         }}
       >
-        {isProcessing ? "Processing..." : "Proceed to Checkout"}
+        Proceed to Checkout
       </button>
     </div>
   );

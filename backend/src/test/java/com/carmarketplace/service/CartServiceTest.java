@@ -83,7 +83,6 @@ class CartServiceTest {
     void removeFromCart_removesAndSaves_whenVehicleInCart() {
         cart.getVehicles().add(vehicle);
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
-        when(vehicleRepository.findById(10L)).thenReturn(Optional.of(vehicle));
         when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
         Cart result = cartService.removeFromCart(1L, 10L);
