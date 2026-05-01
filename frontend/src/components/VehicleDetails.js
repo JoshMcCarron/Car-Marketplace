@@ -3,12 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import ReviewForm from "./ReviewForm";
 import ReviewList from "./ReviewList";
 import api from "../services/api";
+import { getVehicleImage } from "../img/vehicles/vehicleImages";
 
 const VehicleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [vehicle, setVehicle] = useState(null);
-  const [showCO2, setShowCO2] = useState(false);
+  const [vehicle, setVehicle]   = useState(null);
+  const [showCO2, setShowCO2]   = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartMsg, setCartMsg] = useState(null);
   const [reviewKey, setReviewKey] = useState(0);
@@ -58,14 +59,21 @@ const VehicleDetails = () => {
 
       <div className="detail-hero">
         <div className="detail-image">
-          <span style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-n400)" }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/>
-              <circle cx="6.5" cy="16.5" r="2.5"/>
-              <circle cx="16.5" cy="16.5" r="2.5"/>
-            </svg>
-            {vehicle.brand} {vehicle.shape || vehicle.model}
-          </span>
+          {getVehicleImage(vehicle.brand, vehicle.shape)
+            ? <img
+                src={getVehicleImage(vehicle.brand, vehicle.shape)}
+                alt={`${vehicle.brand} ${vehicle.shape}`}
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--radius-lg)" }}
+              />
+            : <span style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-n400)" }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/>
+                  <circle cx="6.5" cy="16.5" r="2.5"/>
+                  <circle cx="16.5" cy="16.5" r="2.5"/>
+                </svg>
+                {vehicle.brand} {vehicle.shape || vehicle.model}
+              </span>
+          }
         </div>
 
         <div>

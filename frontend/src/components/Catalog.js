@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { getVehicleImage } from "../img/vehicles/vehicleImages";
 
 const BRANDS  = ["Toyota", "Honda", "Ford", "BMW", "Mercedes-Benz", "Tesla", "Nissan", "Hyundai", "Subaru"];
 const SHAPES  = ["Sedan", "SUV", "Truck", "Compact", "Wagon"];
 const YEARS   = [2020, 2021, 2022, 2023, 2024];
 
 function VehCard({ vehicle, onNavigate, onAddToCart, adding }) {
+  const imgSrc = getVehicleImage(vehicle.brand, vehicle.shape);
   return (
     <div className={`veh-card${vehicle.onSale ? " veh-card--sale" : ""}`}>
       <div style={{ position: "relative" }} onClick={() => onNavigate(vehicle.vehicleID)}>
         <div className="veh-card__media">
-          <span>🚗 {vehicle.brand} {vehicle.shape}</span>
+          {imgSrc
+            ? <img src={imgSrc} alt={`${vehicle.brand} ${vehicle.shape}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            : <span>🚗 {vehicle.brand} {vehicle.shape}</span>
+          }
         </div>
         {vehicle.onSale && (
           <div className="veh-card__badge">
