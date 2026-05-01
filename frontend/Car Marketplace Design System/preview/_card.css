@@ -1,0 +1,65 @@
+/* Preview card chrome — used by every card in /preview.
+   Cards are designed to render at ~700px wide; the host scales them. */
+
+@import url('../colors_and_type.css');
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg-1);
+  color: var(--color-fg-1);
+  font-family: var(--font-sans);
+}
+
+.card {
+  width: 700px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card.card--tight  { padding: 20px 24px; gap: 12px; }
+.card.card--dark   { background: var(--color-black); color: var(--color-white); }
+.card.card--cream  { background: var(--color-bg-tinted); }
+
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.row--tight { gap: 6px; }
+.row--gap-lg { gap: 20px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.swatch__chip {
+  height: 64px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+.swatch__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.swatch__hex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-fg-3);
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}

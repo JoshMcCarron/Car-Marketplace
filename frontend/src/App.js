@@ -44,13 +44,11 @@ function App() {
   const showNavbar = location.pathname !== "/";
 
   return (
-    <div>
+    <div className="shell">
       {showNavbar && (
         <>
           <Navbar user={user} onLogout={handleLogout} />
-          <div className="chat-container">
-            <Chat />
-          </div>
+          <Chat />
         </>
       )}
       <Routes>

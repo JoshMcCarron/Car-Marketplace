@@ -3,196 +3,107 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 const Cart = ({ user }) => {
-  const [cart, setCart] = useState(null);
+  const [cart, setCart]       = useState(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const userId = user?.userId;
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
-
     api.get(`/users/${user.userId}/cart`)
-      .then((response) => setCart(response.data))
-      .catch((error) => console.error("Error fetching cart:", error));
+      .then((r) => setCart(r.data))
+      .catch((err) => console.error("Error fetching cart:", err));
   }, [user]);
 
   const handleRemove = (vehicleId) => {
     setIsRemoving(true);
-
     api.delete(`/users/${userId}/cart/${vehicleId}`)
-      .then((response) => {
-        const updatedCart = response.data;
-        if (updatedCart?.vehicles) {
-          setCart(updatedCart);
-        } else {
-          setCart({ vehicles: [], price: 0, noItems: 0 });
-        }
-      })
+      .then((r) => setCart(r.data?.vehicles ? r.data : { vehicles: [], price: 0, noItems: 0 }))
       .catch((err) => console.error("Error removing item:", err))
       .finally(() => setIsRemoving(false));
   };
 
   const handleCheckout = () => {
-    navigate("/payment", { state: { totalPrice: cart?.price || 0, userId } });
+    navigate("/payment", { state: { totalPrice: cart?.price || 0, userId, vehicles: cart?.vehicles || [] } });
   };
 
   if (!user) {
     return (
-      <div style={{
-        backgroundColor: "#FFFFFF",
-        padding: "30px",
-        borderRadius: "10px",
-        border: "1px solid #D9D9D9",
-        textAlign: "center",
-        maxWidth: "600px",
-        margin: "20px auto"
-      }}>
-        <h2 style={{ color: "#335C67", marginBottom: "20px" }}>Your Cart</h2>
-        <p style={{ fontSize: "18px" }}>Please log in to view your cart.</p>
+      <div className="container" style={{ padding: "60px 0" }}>
+        <div className="card" style={{ padding: 60, textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
+          <h2 style={{ marginBottom: 12 }}>Your Cart</h2>
+          <p style={{ color: "var(--color-fg-2)", marginBottom: 24 }}>Please log in to view your cart.</p>
+        </div>
       </div>
     );
   }
 
-  if (!cart) return (
-    <div style={{
-      backgroundColor: "#FFFFFF",
-      padding: "30px",
-      borderRadius: "10px",
-      border: "1px solid #D9D9D9",
-      textAlign: "center",
-      maxWidth: "600px",
-      margin: "20px auto"
-    }}>
-      <p>Loading cart...</p>
-    </div>
-  );
+  if (!cart) {
+    return (
+      <div className="container" style={{ padding: "60px 0", textAlign: "center" }}>
+        <p style={{ color: "var(--color-fg-2)" }}>Loading cart…</p>
+      </div>
+    );
+  }
 
-  if (!cart?.vehicles || cart.vehicles.length === 0) return (
-    <div style={{
-      backgroundColor: "#FFFFFF",
-      padding: "30px",
-      borderRadius: "10px",
-      border: "1px solid #D9D9D9",
-      textAlign: "center",
-      maxWidth: "600px",
-      margin: "20px auto"
-    }}>
-      <h2 style={{ color: "#335C67", marginBottom: "20px" }}>Your Cart</h2>
-      <p style={{ fontSize: "18px" }}>Your cart is empty.</p>
-    </div>
-  );
+  if (!cart.vehicles?.length) {
+    return (
+      <div className="container" style={{ padding: "60px 0" }}>
+        <div className="card" style={{ padding: 60, textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
+          <h2 style={{ marginBottom: 8 }}>Your cart is empty</h2>
+          <p style={{ color: "var(--color-fg-2)", marginBottom: 24 }}>
+            Looks like you haven't added any vehicles yet.
+          </p>
+          <button className="btn btn--primary btn--lg" onClick={() => navigate("/catalog")}>
+            Browse Catalog
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      backgroundColor: "#FFFFFF",
-      padding: "30px",
-      borderRadius: "10px",
-      border: "1px solid #D9D9D9",
-      maxWidth: "800px",
-      margin: "20px auto"
-    }}>
-      <h2 style={{
-        color: "#335C67",
-        marginBottom: "25px",
-        paddingBottom: "10px",
-        borderBottom: "1px solid #D9D9D9"
-      }}>
-        Your Cart ({cart.noItems} {cart.noItems === 1 ? 'item' : 'items'})
-      </h2>
+    <div className="container" style={{ padding: "32px 0", maxWidth: 880, margin: "0 auto" }}>
+      <h1 className="section-title">
+        Your Cart ({cart.noItems} {cart.noItems === 1 ? "item" : "items"})
+      </h1>
 
-      <div style={{ marginBottom: "30px" }}>
-        {cart.vehicles.map((vehicle) => (
-          <div key={vehicle.vehicleID} style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "15px",
-            borderBottom: "1px solid #F0F0F0",
-          }}>
-            <div>
-              <h3 style={{
-                color: "#335C67",
-                margin: "0 0 5px 0",
-                fontSize: "18px"
-              }}>
-                {vehicle.brand} {vehicle.model || vehicle.shape}
-              </h3>
-              <div style={{ display: "flex", gap: "20px" }}>
-                <span style={{ color: "#666" }}>Year: {vehicle.modelYear}</span>
-                <span style={{ color: "#666" }}>Mileage: {vehicle.mileage} km</span>
-              </div>
+      <div className="card" style={{ padding: "8px 16px" }}>
+        {cart.vehicles.map((v) => (
+          <div key={v.vehicleID} className="cart-row">
+            <div className="cart-row__thumb">🚗</div>
+            <div className="cart-row__info">
+              <h3 className="cart-row__title">{v.brand} {v.model || v.shape}</h3>
+              <div className="cart-row__meta">{v.modelYear} · {v.mileage} km · {v.vehicleHistory}</div>
             </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{
-                fontSize: "18px",
-                fontWeight: "bold",
-                color: "#9E2A2B",
-                marginBottom: "10px"
-              }}>
-                ${vehicle.price}
-              </div>
-              <button
-                onClick={() => handleRemove(vehicle.vehicleID)}
-                disabled={isRemoving}
-                style={{
-                  padding: "8px 15px",
-                  backgroundColor: "#F5F5F5",
-                  color: "#9E2A2B",
-                  border: "1px solid #D9D9D9",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                }}
-              >
-                Remove
-              </button>
-            </div>
+            <div className="cart-row__price">${Number(v.price).toLocaleString()}</div>
+            <button
+              className="btn btn--ghost btn--sm"
+              onClick={() => handleRemove(v.vehicleID)}
+              disabled={isRemoving}
+            >
+              Remove
+            </button>
           </div>
         ))}
       </div>
 
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "20px",
-        backgroundColor: "#F5F5F5",
-        borderRadius: "5px",
-        marginBottom: "20px"
-      }}>
-        <h3 style={{
-          color: "#335C67",
-          margin: "0",
-          fontSize: "20px"
-        }}>
-          Total Price
-        </h3>
-        <span style={{
-          fontSize: "24px",
-          fontWeight: "bold",
-          color: "#9E2A2B"
-        }}>
-          ${cart.price}
-        </span>
+      <div className="total-bar">
+        <div>
+          <div className="total-bar__label">Total</div>
+          <div style={{ fontSize: 12, color: "var(--color-n400)", marginTop: 2 }}>Taxes &amp; fees included</div>
+        </div>
+        <div className="total-bar__price">${Number(cart.price).toLocaleString()}</div>
       </div>
 
-      <button
-        onClick={handleCheckout}
-        style={{
-          width: "100%",
-          padding: "15px",
-          backgroundColor: "rgba(224, 159, 62, 0.88)",
-          color: "#000",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "18px",
-          fontWeight: "500",
-          transition: "background-color 0.2s",
-        }}
-      >
-        Proceed to Checkout
-      </button>
+      <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
+        <button className="btn btn--outline" onClick={() => navigate("/catalog")}>
+          Continue shopping
+        </button>
+        <button className="btn btn--primary btn--lg" onClick={handleCheckout}>
+          Proceed to Checkout →
+        </button>
+      </div>
     </div>
   );
 };

@@ -2,35 +2,34 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 
+const FIELDS = [
+  { name: "name",       label: "Full Name",     type: "text",     placeholder: "Alex Rivera", required: true },
+  { name: "email",      label: "Email Address", type: "email",    placeholder: "you@email.com", required: true },
+  { name: "password",   label: "Password",      type: "password", placeholder: "••••••••", required: true },
+  { name: "address",    label: "Address",       type: "text",     placeholder: "123 Main St" },
+  { name: "postalCode", label: "Postal Code",   type: "text",     placeholder: "K1A 0A6" },
+  { name: "city",       label: "City",          type: "text",     placeholder: "Ottawa" },
+  { name: "province",   label: "Province",      type: "text",     placeholder: "ON" },
+  { name: "phoneNum",   label: "Phone Number",  type: "text",     placeholder: "613-555-0100" },
+];
+
 const RegisterForm = ({ onLogin }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    address: "",
-    postalCode: "",
-    city: "",
-    province: "",
-    phoneNum: "",
-  });
+  const [formData, setFormData] = useState(
+    Object.fromEntries(FIELDS.map((f) => [f.name, ""]))
+  );
+  const [error, setError] = useState("");
 
-  const [message, setMessage] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-
+    setError("");
     try {
-      // /auth/register returns a full AuthResponse (token + user info) — no second login call needed.
       const response = await api.post("/auth/register", formData);
       onLogin(response.data);
-    } catch (error) {
-      setMessage(
-        error.response?.status === 409
+    } catch (err) {
+      setError(
+        err.response?.status === 409
           ? "An account with that email already exists."
           : "Error registering. Please try again."
       );
@@ -38,92 +37,37 @@ const RegisterForm = ({ onLogin }) => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.welcomeTitle}>Create your account</h2>
-      <h3 style={styles.title}>Register</h3>
-      <form style={styles.form} onSubmit={handleSubmit}>
-        {Object.keys(formData).map((key) => (
-          <input
-            key={key}
-            type={key === "email" ? "email" : key === "password" ? "password" : "text"}
-            name={key}
-            placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
-            value={formData[key]}
-            onChange={handleChange}
-            required={key === "name" || key === "email" || key === "password"}
-            style={styles.input}
-          />
-        ))}
-        <button type="submit" style={styles.registerButton}>Register</button>
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleSubmit}>
+        <h2 className="auth-card__title">Create your account</h2>
+        <p className="auth-card__lede">Save vehicles, track orders, and chat with sellers.</p>
+        {error && <p className="auth-card__error">{error}</p>}
+        <div className="auth-card__form">
+          {FIELDS.map((f) => (
+            <label key={f.name} className="field">
+              <span className="field__label">{f.label}</span>
+              <input
+                className="input"
+                type={f.type}
+                name={f.name}
+                placeholder={f.placeholder}
+                value={formData[f.name]}
+                onChange={handleChange}
+                required={f.required}
+              />
+            </label>
+          ))}
+          <button type="submit" className="btn btn--primary btn--lg" style={{ marginTop: 6 }}>
+            Create account
+          </button>
+        </div>
+        <div className="auth-card__foot">
+          Already have an account?{" "}
+          <Link to="/login">Log in</Link>
+        </div>
       </form>
-      {message && <p style={{ color: "red" }}>{message}</p>}
-      <p style={styles.loginText}>
-        <Link to="/" style={styles.loginLink}>Already have an account?</Link>
-      </p>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "450px",
-    margin: "2rem auto",
-    padding: "50px 50px",
-    borderRadius: "20px",
-    backgroundColor: "#FFF3B0",
-    textAlign: "center",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  },
-  welcomeTitle: {
-    fontSize: "22px",
-    color: "#2c5d63",
-    fontWeight: "500",
-    marginBottom: "10px",
-  },
-  title: {
-    fontSize: "28px",
-    color: "#2c5d63",
-    marginBottom: "25px",
-    fontWeight: "600",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    padding: "0",
-  },
-  input: {
-    width: "420px",
-    padding: "12px",
-    border: "1px solid black",
-    borderRadius: "10px",
-    fontSize: "16px",
-    backgroundColor: "white",
-  },
-  registerButton: {
-    width: "150px",
-    padding: "12px",
-    backgroundColor: "#9E2A2B",
-    color: "white",
-    fontSize: "16px",
-    fontWeight: "600",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    marginTop: "10px",
-    alignSelf: "center",
-  },
-  loginText: {
-    marginTop: "16px",
-    fontSize: "14px",
-    color: "#000",
-  },
-  loginLink: {
-    color: "#000",
-    textDecoration: "underline",
-    fontWeight: "500",
-    marginLeft: "5px",
-  },
 };
 
 export default RegisterForm;

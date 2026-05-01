@@ -2,28 +2,16 @@ import React, { useState } from "react";
 import api from "../services/api";
 
 const ReviewForm = ({ vehicleId, userId, onReviewAdded }) => {
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
+  const [rating, setRating]       = useState(5);
+  const [comment, setComment]     = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const renderStarOptions = () => {
-    return [5, 4, 3, 2, 1].map((star) => (
-      <option key={star} value={star} style={{ color: "rgba(224, 159, 62, 0.88)", backgroundColor: "#FFFFFF" }}>
-        {Array(star).fill("★").join("")}
-      </option>
-    ));
-  };
+  const [error, setError]         = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!userId) { setError("You must be logged in to leave a review."); return; }
     setIsSubmitting(true);
-
-    if (!userId) {
-      alert("You must be logged in to leave a review.");
-      setIsSubmitting(false);
-      return;
-    }
-
+    setError("");
     try {
       await api.post(`/vehicles/${vehicleId}/reviews/${userId}`, {
         rating: Number(rating),
@@ -32,69 +20,48 @@ const ReviewForm = ({ vehicleId, userId, onReviewAdded }) => {
       setComment("");
       setRating(5);
       onReviewAdded();
-    } catch (error) {
-      console.error("Review submission error:", error);
-      alert("Failed to submit review.");
+    } catch {
+      setError("Failed to submit review. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={{
-      backgroundColor: "#FFFFFF",
-      padding: "20px",
-      borderRadius: "5px",
-      border: "1px solid #D9D9D9",
-      marginBottom: "30px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-    }}>
-      <h3 style={{ color: "#335C67", fontSize: "20px", marginBottom: "15px" }}>Write a Review</h3>
-
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "500", color: "#333" }}>
-            Rating:
-          </label>
+    <div style={{ marginBottom: 28, paddingBottom: 24, borderBottom: "1px solid var(--color-border)" }}>
+      <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 16px" }}>Write a Review</h3>
+      {error && <p className="auth-card__error" style={{ marginBottom: 12 }}>{error}</p>}
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <label className="field" style={{ maxWidth: 220 }}>
+          <span className="field__label">Rating</span>
           <select
+            className="select"
             value={rating}
             onChange={(e) => setRating(e.target.value)}
-            style={{ padding: "8px 12px", borderRadius: "5px", border: "1px solid #D9D9D9", backgroundColor: "#FFFFFF", fontSize: "16px", cursor: "pointer" }}
           >
-            {renderStarOptions()}
+            {[5, 4, 3, 2, 1].map((s) => (
+              <option key={s} value={s}>{Array(s).fill("★").join("")} ({s}/5)</option>
+            ))}
           </select>
-        </div>
+        </label>
 
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "500", color: "#333" }}>
-            Comment:
-          </label>
+        <label className="field">
+          <span className="field__label">Comment</span>
           <textarea
+            className="input"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            rows="4"
-            style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #D9D9D9", fontSize: "16px", resize: "vertical", minHeight: "100px" }}
+            rows={4}
+            style={{ resize: "vertical", minHeight: 100 }}
             required
           />
-        </div>
+        </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "rgba(224, 159, 62, 0.88)",
-            color: "#000",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontSize: "16px",
-            fontWeight: "500",
-            transition: "background-color 0.2s",
-          }}
-        >
-          {isSubmitting ? "Submitting..." : "Submit Review"}
-        </button>
+        <div>
+          <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting…" : "Submit Review"}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -1,141 +1,54 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 const LoginForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-
+    setError("");
     try {
       const response = await api.post("/auth/login", formData);
       onLogin(response.data);
       navigate("/catalog");
-    } catch (error) {
-      setMessage("Invalid email or password.");
+    } catch {
+      setError("Invalid email or password.");
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.welcome}>Welcome back!</h2>
-      <h3 style={styles.loginTitle}>Login</h3>
-      {message && <p style={styles.message}>{message}</p>}
-
-      <form style={styles.form} onSubmit={handleSubmit}>
-        <label style={styles.label}>Email Address</label>
-        <input
-          style={styles.input}
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-
-        <label style={styles.label}>Password</label>
-        <input
-          style={styles.input}
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <button style={styles.loginButton} type="submit">
-          Login
-        </button>
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={handleSubmit}>
+        <h2 className="auth-card__title">Welcome back!</h2>
+        <p className="auth-card__lede">Sign in to access your cart and saved searches.</p>
+        {error && <p className="auth-card__error">{error}</p>}
+        <div className="auth-card__form">
+          <label className="field">
+            <span className="field__label">Email Address</span>
+            <input className="input" type="email" name="email" placeholder="you@email.com"
+              value={formData.email} onChange={handleChange} required />
+          </label>
+          <label className="field">
+            <span className="field__label">Password</span>
+            <input className="input" type="password" name="password" placeholder="••••••••"
+              value={formData.password} onChange={handleChange} required />
+          </label>
+          <button type="submit" className="btn btn--primary btn--lg" style={{ marginTop: 6 }}>
+            Login
+          </button>
+        </div>
+        <div className="auth-card__foot">
+          Don't have an account?{" "}
+          <Link to="/register">Sign up here</Link>
+        </div>
       </form>
-
-      <p style={styles.signupText}>
-        Don't have an account?{" "}
-        <Link to="/register" style={styles.signupLink}>
-          Sign up here!
-        </Link>
-      </p>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "400px",
-    margin: "auto",
-    padding: "30px",
-    borderRadius: "12px",
-    backgroundColor: "#FFF3B0",
-    textAlign: "center",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-    marginTop: "30px",
-  },
-  welcome: {
-    fontSize: "24px",
-    color: "#5A5A5A",
-  },
-  loginTitle: {
-    fontSize: "20px",
-    color: "#5A5A5A",
-    marginBottom: "15px",
-  },
-  message: {
-    color: "red",
-    fontSize: "14px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    padding: "20px",
-    backgroundColor: "#fff",
-    borderRadius: "8px",
-    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
-  },
-  label: {
-    textAlign: "left",
-    fontSize: "14px",
-    fontWeight: "bold",
-    color: "#333",
-  },
-  input: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    fontSize: "16px",
-  },
-  loginButton: {
-    width: "150px",
-    padding: "10px",
-    borderRadius: "5px",
-    backgroundColor: "#9E2A2B",
-    color: "white",
-    fontSize: "16px",
-    cursor: "pointer",
-    border: "none",
-    marginTop: "10px",
-    transition: "0.3s",
-    alignSelf: "center",
-  },
-  signupText: {
-    marginTop: "10px",
-    fontSize: "14px",
-    color: "#333",
-  },
-  signupLink: {
-    color: "#007bff",
-    textDecoration: "underline",
-    fontWeight: "bold",
-  },
 };
 
 export default LoginForm;

@@ -1,0 +1,194 @@
+/* ============================================================
+   Car Marketplace Design System — Colors & Typography Tokens
+   ============================================================
+   Source of truth for all visual tokens. Import once at the
+   root of any prototype or production surface. */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ---- BRAND COLORS ---- */
+  --color-yellow:        #FECE14;   /* primary brand */
+  --color-yellow-hover:  #E8B900;
+  --color-yellow-press:  #C99E00;
+  --color-yellow-soft:   #FFF6CC;   /* tinted backgrounds */
+  --color-yellow-line:   #F6D34A;   /* borders on yellow surfaces */
+
+  --color-black:         #0E0E10;   /* secondary brand / type */
+  --color-ink:           #1A1A1D;   /* near-black surfaces */
+  --color-charcoal:      #2A2A2E;
+
+  --color-white:         #FFFFFF;
+  --color-cream:         #FAF7EE;   /* warm surface */
+
+  /* ---- NEUTRAL SCALE (warm grays) ---- */
+  --color-n50:   #F8F7F4;
+  --color-n100:  #EFEDE6;
+  --color-n200:  #E2DFD5;
+  --color-n300:  #C9C4B6;
+  --color-n400:  #9C9789;
+  --color-n500:  #6F6B60;
+  --color-n600:  #4A4740;
+  --color-n700:  #2E2C27;
+  --color-n800:  #1A1916;
+
+  /* ---- SEMANTIC ---- */
+  --color-fg-1:        var(--color-black);     /* primary text */
+  --color-fg-2:        var(--color-n600);      /* body */
+  --color-fg-3:        var(--color-n500);      /* meta / captions */
+  --color-fg-on-dark:  var(--color-white);
+  --color-fg-on-yellow: var(--color-black);
+
+  --color-bg-1:        var(--color-white);     /* page */
+  --color-bg-2:        var(--color-n50);       /* subtle section */
+  --color-bg-3:        var(--color-n100);      /* card press / muted */
+  --color-bg-dark:     var(--color-black);     /* footer / hero contrast */
+  --color-bg-tinted:   var(--color-cream);     /* warm hero */
+
+  --color-border:        var(--color-n200);
+  --color-border-strong: var(--color-n300);
+  --color-border-dark:   var(--color-black);
+
+  --color-accent:        var(--color-yellow);
+  --color-accent-fg:     var(--color-black);
+
+  /* ---- STATUS ---- */
+  --color-success:    #1F8A4C;
+  --color-success-bg: #E6F5EC;
+  --color-danger:     #C8311E;
+  --color-danger-bg:  #FBEAE7;
+  --color-warning:    #B7791F;
+  --color-warning-bg: #FFF4D6;
+  --color-info:       #1B5FA0;
+  --color-info-bg:    #E5EFF8;
+  --color-sale:       #C8311E;       /* "Hot Deal" red */
+  --color-sale-bg:    #FBEAE7;
+
+  /* ---- ELEVATION & RADII ---- */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(14,14,16,0.06);
+  --shadow-sm: 0 2px 6px rgba(14,14,16,0.08);
+  --shadow-md: 0 6px 18px rgba(14,14,16,0.10);
+  --shadow-lg: 0 16px 40px rgba(14,14,16,0.14);
+  --shadow-yellow: 0 8px 24px rgba(254,206,20,0.35);
+
+  /* ---- SPACING ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ---- TYPE: families ---- */
+  --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* ---- TYPE: weights ---- */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extra: 800;
+
+  /* ---- TYPE: scale (px) ---- */
+  --fs-display:  64px;
+  --fs-h1:       44px;
+  --fs-h2:       32px;
+  --fs-h3:       24px;
+  --fs-h4:       20px;
+  --fs-body-lg:  18px;
+  --fs-body:     16px;
+  --fs-body-sm:  14px;
+  --fs-caption:  13px;
+  --fs-micro:    11px;
+
+  --lh-tight:  1.1;
+  --lh-snug:   1.25;
+  --lh-normal: 1.5;
+  --lh-loose:  1.7;
+
+  --tracking-display: -0.02em;
+  --tracking-tight:   -0.01em;
+  --tracking-normal:   0;
+  --tracking-wide:     0.04em;
+  --tracking-eyebrow:  0.12em;
+
+  /* ---- MOTION ---- */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.4, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+}
+
+/* ============================================================
+   Base type styles — apply to the document root once.
+   ============================================================ */
+html, body {
+  font-family: var(--font-sans);
+  color: var(--color-fg-1);
+  background: var(--color-bg-1);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Semantic type roles (use as classes when not styling tags) */
+.t-display, h1.display {
+  font-family: var(--font-sans);
+  font-size: var(--fs-display);
+  font-weight: var(--weight-extra);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+}
+.t-h1, h1 {
+  font-size: var(--fs-h1);
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.t-h2, h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+}
+.t-h3, h3 {
+  font-size: var(--fs-h3);
+  font-weight: var(--weight-semibold);
+  line-height: var(--lh-snug);
+}
+.t-h4, h4 {
+  font-size: var(--fs-h4);
+  font-weight: var(--weight-semibold);
+  line-height: var(--lh-snug);
+}
+.t-body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-normal); }
+.t-body    { font-size: var(--fs-body);    line-height: var(--lh-normal); }
+.t-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-normal); color: var(--color-fg-2); }
+.t-caption { font-size: var(--fs-caption); line-height: var(--lh-normal); color: var(--color-fg-3); }
+.t-micro   { font-size: var(--fs-micro);   line-height: var(--lh-normal); color: var(--color-fg-3); }
+
+.t-eyebrow {
+  font-size: var(--fs-caption);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-fg-2);
+}
+
+.t-mono { font-family: var(--font-mono); }
