@@ -6,14 +6,34 @@ function LandingPage() {
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
   const [hotDeals, setHotDeals] = useState([]);
+  const [stats, setStats] = useState({ listings: null, brands: null, rating: null });
 
   useEffect(() => {
     if (user) navigate("/catalog");
   }, [user, navigate]);
 
   useEffect(() => {
-    api.get("/vehicles?onSale=true&sortBy=price&direction=asc")
-      .then((r) => setHotDeals(r.data.slice(0, 4)))
+    api.get("/vehicles")
+      .then(async (r) => {
+        const all = r.data;
+        const listings = all.length;
+        const brands   = new Set(all.map((v) => v.brand)).size;
+        setStats((s) => ({ ...s, listings, brands }));
+        setHotDeals(all.filter((v) => v.onSale).slice(0, 4));
+
+        const reviewArrays = await Promise.all(
+          all.map((v) =>
+            api.get(`/vehicles/${v.vehicleID}/reviews`)
+              .then((r) => r.data)
+              .catch(() => [])
+          )
+        );
+        const allReviews = reviewArrays.flat();
+        if (allReviews.length > 0) {
+          const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+          setStats((s) => ({ ...s, rating: avg.toFixed(1) }));
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -38,7 +58,7 @@ function LandingPage() {
       {/* Hero */}
       <section className="hero">
         <div className="container">
-          <div className="eyebrow">2,400+ vehicles · updated daily</div>
+          <div className="eyebrow">{stats.listings ? `${stats.listings} vehicles` : "vehicles"} · updated daily</div>
           <h1 className="hero__title">
             Find your <em>next</em> car<br />without the runaround.
           </h1>
@@ -52,17 +72,19 @@ function LandingPage() {
           </div>
           <div className="hero__stats">
             <div className="hero__stat">
-              <span className="hero__stat-num">2,418</span>
+              <span className="hero__stat-num">{stats.listings ?? "—"}</span>
               <span className="hero__stat-label">Listings</span>
             </div>
             <div className="hero__stat">
-              <span className="hero__stat-num">9</span>
+              <span className="hero__stat-num">{stats.brands ?? "—"}</span>
               <span className="hero__stat-label">Brands</span>
             </div>
-            <div className="hero__stat">
-              <span className="hero__stat-num">4.8★</span>
-              <span className="hero__stat-label">Buyer Rating</span>
-            </div>
+            {stats.rating && (
+              <div className="hero__stat">
+                <span className="hero__stat-num">{stats.rating}★</span>
+                <span className="hero__stat-label">Buyer Rating</span>
+              </div>
+            )}
             <div className="hero__stat">
               <span className="hero__stat-num">24/7</span>
               <span className="hero__stat-label">Chat Support</span>
