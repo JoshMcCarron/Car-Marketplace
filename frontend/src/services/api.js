@@ -14,10 +14,12 @@ api.interceptors.request.use((config) => {
 });
 
 // On 401, the token has expired or is invalid — clear storage and send the user to login.
+// Skip auth endpoints so a bad password doesn't trigger a redirect.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.startsWith('/auth');
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/';
