@@ -37,14 +37,6 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    @PutMapping
-    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(#userId, authentication)")
-    public ResponseEntity<Cart> updateCart(@PathVariable Long userId, @RequestBody Cart updatedCart) {
-        return cartService.updateCart(userId, updatedCart)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     @PostMapping("/checkout")
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(#userId, authentication)")
     public ResponseEntity<String> checkout(@PathVariable Long userId) {

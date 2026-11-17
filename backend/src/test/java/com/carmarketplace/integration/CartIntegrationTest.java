@@ -6,6 +6,7 @@ import com.carmarketplace.repository.VehicleRepository;
 import com.carmarketplace.service.PaymentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ class CartIntegrationTest {
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @Autowired VehicleRepository vehicleRepository;
+    @Autowired EntityManager entityManager;
 
     // Stub payment so no real gateway is needed in any test that calls checkout.
     @MockBean PaymentService paymentService;
@@ -109,7 +111,9 @@ class CartIntegrationTest {
                         .header("Authorization", "Bearer " + auth.token()))
                 .andExpect(status().isOk());
 
-        // Stock must be decremented at the DB level, not just in memory.
+        // Stock must be decremented at the DB level, not just in memory: checkout uses an atomic
+        // UPDATE, so clear this test transaction's persistence context and re-read from the database.
+        entityManager.clear();
         int stockAfter = vehicleRepository.findById(vehicleId)
                 .orElseThrow()
                 .getStock();

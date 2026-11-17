@@ -2,6 +2,7 @@ package com.carmarketplace.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,15 +44,6 @@ public class CartService {
 
     public Cart createCart(Cart cart) {
         return cartRepository.save(cart);
-    }
-
-    public Optional<Cart> updateCart(Long id, Cart newCart) {
-        return cartRepository.findById(id).map(cart -> {
-            cart.setUser(newCart.getUser());
-            cart.setVehicles(newCart.getVehicles());
-            updateCartTotals(cart);
-            return cartRepository.save(cart);
-        });
     }
 
     public boolean deleteCart(Long id) {
@@ -96,27 +88,31 @@ public class CartService {
             throw new BadRequestException("Cart is empty");
         }
 
-        for (Vehicle vehicle : cart.getVehicles()) {
-            if (vehicle.getStock() <= 0) {
+        // Reserve one unit of each vehicle with an atomic conditional UPDATE. Under concurrent
+        // checkouts only as many buyers as there are units succeed; the rest get "out of stock".
+        // Vehicles are reserved in ID order so two carts can't lock rows in opposite orders.
+        List<Vehicle> purchased = new ArrayList<>(cart.getVehicles());
+        purchased.sort(Comparator.comparing(Vehicle::getVehicleID));
+        for (Vehicle vehicle : purchased) {
+            if (vehicleRepository.decrementStockIfAvailable(vehicle.getVehicleID()) == 0) {
+                // throwing rolls back any units already reserved in this transaction
                 throw new BadRequestException("Vehicle " + vehicle.getVehicleID() + " is out of stock");
             }
         }
 
-        if (!paymentService.processPayment(cart.getPrice())) {
-            throw new BadRequestException("Credit card authorization failed");
-        }
-
-        List<Vehicle> purchased = new ArrayList<>(cart.getVehicles());
-
+        // Charge the total recomputed from current vehicle prices, not the stored cart total.
+        BigDecimal total = BigDecimal.ZERO;
         for (Vehicle vehicle : purchased) {
-            vehicle.setStock(vehicle.getStock() - 1);
-            vehicleRepository.save(vehicle);
+            total = total.add(vehicle.getPrice());
+        }
+        if (!paymentService.processPayment(total)) {
+            throw new BadRequestException("Credit card authorization failed");
         }
 
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setVehicles(purchased);
-        order.setTotalPrice(cart.getPrice());
+        order.setTotalPrice(total);
         orderRepository.save(order);
 
         cart.getVehicles().clear();

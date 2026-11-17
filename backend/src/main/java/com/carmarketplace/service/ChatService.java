@@ -130,43 +130,51 @@ public class ChatService {
                extractVehicleId(message) != null;
     }
 
+    // Brand names also match simple plurals/possessives ("Toyotas", "Honda's").
+    private static Pattern brandPattern(String brand) {
+        return Pattern.compile("\\b" + Pattern.quote(brand) + "(?:s|es|'s)?\\b", Pattern.CASE_INSENSITIVE);
+    }
+
     private boolean containsBrandRequest(String message) {
-        for (String brand : BRANDS) {
-            Pattern pattern = Pattern.compile("\\b" + Pattern.quote(brand) + "\\b", Pattern.CASE_INSENSITIVE);
-            if (pattern.matcher(message).find()) {
-                return true;
-            }
-        }
-        return false;
+        return extractBrand(message) != null;
     }
 
     private String extractBrand(String message) {
         for (String brand : BRANDS) {
-            if (message.matches(".*\\b" + brand + "\\b.*")) {
+            if (brandPattern(brand).matcher(message).find()) {
                 return brand.substring(0, 1).toUpperCase() + brand.substring(1);
             }
         }
         return null;
     }
 
+    private static final Pattern EXPLICIT_ID = Pattern.compile("\\b(vehicle|id|car)\\s*#?\\s*(\\d+)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BARE_NUMBER = Pattern.compile("(\\$)?\\b(\\d+(?:\\.\\d+)?)\\b(\\s*(?:dollars\\s*)?down\\b)?");
+    private static final Pattern YEAR = Pattern.compile("^(19|20)\\d{2}$");
+
     private Long extractVehicleId(String message) {
-        Pattern pattern = Pattern.compile("\\b(vehicle|id|car)\\s*(\\d+)\\b", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(message);
+        Matcher matcher = EXPLICIT_ID.matcher(message);
         if (matcher.find()) {
             return Long.parseLong(matcher.group(2));
         }
-
-        pattern = Pattern.compile("\\b(\\d+)\\b");
-        matcher = pattern.matcher(message);
-        if (matcher.find()) {
-            return Long.parseLong(matcher.group(1));
+        // Fallback: a bare whole number that isn't a model year or a dollar / down-payment amount.
+        matcher = BARE_NUMBER.matcher(message);
+        while (matcher.find()) {
+            String num = matcher.group(2);
+            boolean money = matcher.group(1) != null || matcher.group(3) != null;
+            if (!money && !num.contains(".") && !YEAR.matcher(num).matches()) {
+                return Long.parseLong(num);
+            }
         }
         return null;
     }
 
     private Double extractDownPayment(String message) {
+        // "down payment $5000" | "down $5000" | "$5000 down" / "0 down" / "3000 dollars down"
         Pattern pattern = Pattern.compile(
-                "\\bdown\\s*payment\\s*\\$?\\s*(\\d+(?:\\.\\d+)?)\\b|\\bdown\\s*\\$?\\s*(\\d+(?:\\.\\d+)?)\\b");
+                "\\bdown\\s*payment\\s*(?:of\\s*)?\\$?\\s*(\\d+(?:\\.\\d+)?)\\b"
+                + "|\\bdown\\s*\\$?\\s*(\\d+(?:\\.\\d+)?)\\b"
+                + "|\\$?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:dollars\\s*)?down\\b");
         Matcher matcher = pattern.matcher(message);
         if (matcher.find()) {
             for (int i = 1; i <= matcher.groupCount(); i++) {

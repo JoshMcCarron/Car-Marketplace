@@ -97,20 +97,20 @@ class CartServiceTest {
     // --- checkout ---
 
     @Test
-    @DisplayName("checkout: decrements stock, saves order, and clears cart on success")
+    @DisplayName("checkout: reserves stock atomically, saves order, and clears cart on success")
     void checkout_decrementsStockAndClearsCart_onSuccess() {
         cart.getVehicles().add(vehicle);
         cart.setPrice(vehicle.getPrice()); // mirror what updateCartTotals() would set after addVehicleToCart
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
+        when(vehicleRepository.decrementStockIfAvailable(10L)).thenReturn(1);
         when(paymentService.processPayment(any())).thenReturn(true);
-        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(vehicle);
         ArgumentCaptor<Cart> cartCaptor = ArgumentCaptor.forClass(Cart.class);
         when(cartRepository.save(cartCaptor.capture())).thenReturn(cart);
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
 
         cartService.checkout(1L);
 
-        assertThat(vehicle.getStock()).isEqualTo(4); // decremented from 5
+        verify(vehicleRepository).decrementStockIfAvailable(10L); // atomic DB-side decrement
         assertThat(cartCaptor.getValue().getVehicles()).isEmpty();
 
         verify(orderRepository).save(orderCaptor.capture());
@@ -137,6 +137,7 @@ class CartServiceTest {
     void checkout_throwsBadRequest_whenPaymentFails() {
         cart.getVehicles().add(vehicle);
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
+        when(vehicleRepository.decrementStockIfAvailable(10L)).thenReturn(1);
         when(paymentService.processPayment(any())).thenReturn(false);
 
         assertThatThrownBy(() -> cartService.checkout(1L))
@@ -153,6 +154,7 @@ class CartServiceTest {
         cart.getVehicles().add(outOfStock);
 
         when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
+        when(vehicleRepository.decrementStockIfAvailable(11L)).thenReturn(0); // DB reports nothing left
 
         assertThatThrownBy(() -> cartService.checkout(1L))
                 .isInstanceOf(BadRequestException.class)
@@ -160,5 +162,25 @@ class CartServiceTest {
 
         verify(paymentService, never()).processPayment(any());
         verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("checkout: reserves vehicles in ID order and charges the total of current vehicle prices, not the stored cart total")
+    void checkout_reservesInIdOrder_andChargesRecomputedTotal() {
+        Vehicle second = TestDataFactory.buildVehicle("Honda", 2);
+        second.setVehicleID(3L);
+        cart.getVehicles().add(vehicle);   // id 10
+        cart.getVehicles().add(second);    // id 3
+        cart.setPrice(java.math.BigDecimal.ONE); // stale / tampered stored total
+        when(cartRepository.findByUserUserId(1L)).thenReturn(Optional.of(cart));
+        when(vehicleRepository.decrementStockIfAvailable(anyLong())).thenReturn(1);
+        when(paymentService.processPayment(any())).thenReturn(true);
+
+        cartService.checkout(1L);
+
+        var inOrder = inOrder(vehicleRepository);
+        inOrder.verify(vehicleRepository).decrementStockIfAvailable(3L);
+        inOrder.verify(vehicleRepository).decrementStockIfAvailable(10L);
+        verify(paymentService).processPayment(vehicle.getPrice().add(second.getPrice()));
     }
 }
