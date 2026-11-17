@@ -79,7 +79,7 @@ public class ChatController {
                 response = "What type of vehicle are you looking for? We have sedans, SUVs, trucks, and more.";
             }
 
-        } else if (message.contains("year") || message.contains("model year")) {
+        } else if (message.contains("year") || extractYear(message) != null) {
             Integer year = extractYear(message);
             if (year != null) {
                 vehicles = vehicleService.getVehiclesByModelYear(year);
@@ -105,18 +105,16 @@ public class ChatController {
         return ResponseEntity.ok(new ChatResponse(response));
     }
 
+    // Whole-word matching: plain contains("hi") also matched "vehicles", "which" and "anything".
+    private static final Pattern GREETING = Pattern.compile("\\b(hello|hi|hey|greetings|howdy)\\b");
+    private static final Pattern GOODBYE  = Pattern.compile("\\b(bye|goodbye|see you|exit|quit)\\b");
+
     private boolean containsGreeting(String message) {
-        for (String g : new String[]{"hello", "hi", "hey", "greetings", "howdy"}) {
-            if (message.contains(g)) return true;
-        }
-        return false;
+        return GREETING.matcher(message).find();
     }
 
     private boolean containsGoodbye(String message) {
-        for (String g : new String[]{"bye", "goodbye", "see you", "later", "exit", "quit"}) {
-            if (message.contains(g)) return true;
-        }
-        return false;
+        return GOODBYE.matcher(message).find();
     }
 
     private String extractShape(String message) {
