@@ -129,6 +129,7 @@ Request
 - **Role-based + ownership access control** — `ROLE_ADMIN` or account owner required for user/cart mutations; a `UserSecurity` component exposes `isOwner()` for `@PreAuthorize` expressions
 - **Database-level filtering** — vehicle search uses JPA `Specification` predicates pushed to PostgreSQL rather than loading all rows into memory
 - **Global exception handler** — `@RestControllerAdvice` maps typed exceptions to consistent JSON error responses (`timestamp`, `status`, `error`, `message`)
+- **Oversell-safe checkout** — stock is reserved with an atomic conditional `UPDATE ... SET stock = stock - 1 WHERE stock > 0` inside the checkout transaction, so concurrent buyers can't purchase more units than exist; payment is only taken after every vehicle is reserved
 
 ---
 
@@ -149,18 +150,23 @@ The app reads connection details from environment variables. `DB_PASSWORD` has n
 | `DB_NAME` | `car_marketplace` | Database name |
 | `DB_USER` | `postgres` | Database username |
 | `DB_PASSWORD` | *(none — required)* | Database password |
+| `JWT_SECRET` | *(none — required)* | Base64-encoded key (at least 32 bytes) used to sign JWTs |
 
-**Set `DB_PASSWORD` before running the app:**
+**Set `DB_PASSWORD` and `JWT_SECRET` before running the app:**
 
 Windows PowerShell:
 ```powershell
 $env:DB_PASSWORD="yourpassword"
+$env:JWT_SECRET=[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
 ```
 
 Mac/Linux:
 ```bash
 export DB_PASSWORD=yourpassword
+export JWT_SECRET=$(openssl rand -base64 32)
 ```
+
+Changing `JWT_SECRET` invalidates all previously issued tokens (users simply log in again).
 
 > Tests use an H2 in-memory database and do not require PostgreSQL to be running.
 
