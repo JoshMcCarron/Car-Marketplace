@@ -1,16 +1,41 @@
 package com.carmarketplace.service;
 
+import com.carmarketplace.TestDataFactory;
+import com.carmarketplace.entity.Vehicle;
 import com.carmarketplace.service.ChatService.Intent;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /** Intent detection is pure string logic, so no Spring context or database is needed. */
 class ChatServiceTest {
 
     private final ChatService chatService = new ChatService(null);
+
+    @Test
+    @DisplayName("calculateLoanPayment: quotes the monthly payment over the vehicle's term in months")
+    void loanReply_usesTermInMonths() {
+        Vehicle bmw = TestDataFactory.buildVehicle("BMW", 4);
+        bmw.setPrice(new BigDecimal("68000.00"));
+        bmw.setInterestRate(new BigDecimal("6.99"));
+        bmw.setLoanDuration(72);   // stored in months
+        VehicleService vehicleService = mock(VehicleService.class);
+        when(vehicleService.getVehicleById(4L)).thenReturn(Optional.of(bmw));
+
+        String reply = new ChatService(vehicleService).calculateLoanPayment(4L, 5000);
+
+        // was $369.42 when the 72-month term was multiplied by 12 (864 payments)
+        assertThat(reply).contains("Loan Duration: 72 months")
+                         .contains("monthly payment would be: $1,073.78");
+    }
 
     @ParameterizedTest(name = "\"{0}\" -> {1} {2}")
     @DisplayName("detectIntent: routes messages to the right intent and parameters")
