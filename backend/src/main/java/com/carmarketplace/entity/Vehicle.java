@@ -68,13 +68,19 @@ public class Vehicle {
     	
     }
 
-    public double calculateLoan(double vehiclePrice, double downPayment, double interestRate, int loadDuration ){
+    /**
+     * Monthly payment for a fixed-rate loan.
+     * @param interestRate        annual rate in percent (e.g. 6.99)
+     * @param loanDurationMonths  term in months, the same unit as the loanDuration field (e.g. 72)
+     */
+    public double calculateLoan(double vehiclePrice, double downPayment, double interestRate, int loanDurationMonths) {
     	double loanPrincipal = vehiclePrice - downPayment;
-    	
+
     	double monthlyInterestRate = interestRate / 100 / 12;
-    	
-    	int numberOfPayments = loanDuration * 12;
-    	
+
+    	// loanDuration is already stored in months: one payment per month, no "* 12".
+    	int numberOfPayments = loanDurationMonths;
+
     	if (monthlyInterestRate == 0) {
     		return loanPrincipal / numberOfPayments;
     	}else {
